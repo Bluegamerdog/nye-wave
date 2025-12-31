@@ -72,25 +72,36 @@ function fmtCountdown(ms) {
 const elFilter = document.getElementById("filter");
 const elDedupe = document.getElementById("dedupe");
 const elList = document.getElementById("list");
-const elInfo = document.getElementById("info");
-const elProgress = document.getElementById("progress");
 const elPageTitle = document.getElementById("pageTitle");
+const elJumpNext = document.getElementById("jumpNext");
+const elJumpNextInfo = document.getElementById("jumpNextInfo");
+const elProgressFill = document.getElementById("progressFill");
+
+
+// Left panel elements
+const elShowingLine = document.getElementById("showingLine");
+const elUtcLine = document.getElementById("utcLine");
+const elCrossedLine = document.getElementById("crossedLine");
+const elNextLine = document.getElementById("nextLine");
+const elNextWhen = document.getElementById("nextWhen");
 
 // ---------- Init ----------
 let targetYear = getTargetYearUtcNow();
 let allItems = buildEvents(targetYear);
+let lastNextRowId = null;
 
 function syncTitles() {
     const title = `NYE ${targetYear} – Timezone Wave`;
     document.title = title;
-    elPageTitle.textContent = `NYE ${targetYear} – Midnight Wave by Timezone`;
+    if (elPageTitle) elPageTitle.textContent = `NYE ${targetYear} – Midnight Wave by Timezone`;
 }
 
 syncTitles();
 
 function render() {
-    // If we crossed into the target year already (in UTC), roll forward automatically
     const nowUtc = DateTime.utc();
+
+    // If we crossed into the target year already (in UTC), roll forward automatically
     if (nowUtc.year >= targetYear) {
         targetYear = getTargetYearUtcNow();
         allItems = buildEvents(targetYear);
@@ -98,8 +109,8 @@ function render() {
     }
 
     const now = nowUtc.toMillis();
-    const filter = elFilter.value.trim().toLowerCase();
-    const dedupe = elDedupe.checked;
+    const filter = (elFilter?.value ?? "").trim().toLowerCase();
+    const dedupe = !!elDedupe?.checked;
 
     let itemsToShow = allItems;
     if (filter) itemsToShow = itemsToShow.filter((x) => x.zone.toLowerCase().includes(filter));
@@ -124,46 +135,88 @@ function render() {
         }));
     }
 
+    // Empty state (e.g. filter too strict)
+    if (rows.length === 0) {
+        if (elShowingLine) elShowingLine.textContent = `No matches for “${filter}”`;
+        if (elUtcLine) elUtcLine.textContent = `Current UTC: ${nowUtc.toISO({ suppressMilliseconds: true })}`;
+        if (elCrossedLine) elCrossedLine.textContent = "";
+        if (elNextLine) elNextLine.textContent = "";
+        if (elNextWhen) elNextWhen.textContent = "";
+
+        if (elList) elList.innerHTML = "";
+        lastNextRowId = null;
+        if (elJumpNext) elJumpNext.disabled = true;
+        return;
+    }
+
     // Next upcoming row
     let nextIdx = rows.findIndex((r) => r.utcMillis > now);
     if (nextIdx < 0) nextIdx = rows.length - 1;
 
-    // Progress: how many have crossed
+    // Progress (row-based, as-is)
     const crossed = rows.filter((r) => r.utcMillis <= now).length;
     const total = rows.length;
 
-    // Next row info
+    if (elProgressFill) {
+        const pct = total ? (crossed / total) : 0;
+        elProgressFill.style.width = `${Math.round(pct * 100)}%`;
+    }
+
     const nextRow = rows[nextIdx];
     const nextIn = nextRow ? nextRow.utcMillis - now : 0;
     const nextUtcStr = nextRow
         ? DateTime.fromMillis(nextRow.utcMillis, { zone: "utc" }).toFormat("yyyy-LL-dd HH:mm:ss 'UTC'")
         : "—";
 
-    elProgress.textContent =
-        `${crossed} / ${total} crossed into ${targetYear}. ` +
-        (nextRow && nextIn > 0 ? `Next in ${fmtCountdown(nextIn)} (${nextUtcStr}).` : "");
+    // Left panel formatting
+    if (elShowingLine) {
+        elShowingLine.textContent =
+            `Showing ${rows.length} ${dedupe ? "entries (grouped)" : "timezones"} out of ${zones.length}`;
+    }
+    if (elUtcLine) {
+        elUtcLine.textContent = `Current UTC: ${nowUtc.toISO({ suppressMilliseconds: true })}`;
+    }
+    if (elCrossedLine) {
+        elCrossedLine.textContent = `${crossed} / ${total} crossed into ${targetYear}`;
+    }
+    if (elNextLine) {
+        elNextLine.textContent = nextRow && nextIn > 0 ? `Next in ${fmtCountdown(nextIn)}` : `All done for ${targetYear}`;
+    }
+    if (elNextWhen) {
+        elNextWhen.textContent = nextRow && nextIn > 0 ? `(${nextUtcStr})` : "";
+    }
 
-    elInfo.textContent =
-        `Showing ${rows.length} ${dedupe ? "entries (grouped)" : "timezones"} out of ${zones.length}. ` +
-        `Current UTC: ${nowUtc.toISO({ suppressMilliseconds: true })}`;
+    // Track jump target
+    lastNextRowId = `row-${nextIdx + 1}`;
+    const enabled = (nextRow && nextIn > 0);
+
+    if (elJumpNext) elJumpNext.disabled = !enabled;
+
+    if (elJumpNextInfo) {
+        elJumpNextInfo.classList.toggle("disabled", !enabled);
+        elJumpNextInfo.setAttribute("aria-disabled", String(!enabled));
+    }
+
 
     // Render list
-    elList.innerHTML = "";
+    if (elList) elList.innerHTML = "";
 
     rows.forEach((r, idx) => {
         const dtUtc = DateTime.fromMillis(r.utcMillis, { zone: "utc" });
         const diff = r.utcMillis - now;
 
-        const el = document.createElement("div");
-        el.className = "row";
-        if (diff <= 0) el.classList.add("done");
-        if (idx === nextIdx && diff > 0) el.classList.add("next");
+        const row = document.createElement("div");
+        row.className = "row";
+        row.id = `row-${idx + 1}`;
+
+        if (diff <= 0) row.classList.add("done");
+        if (idx === nextIdx && diff > 0) row.classList.add("next");
 
         const localInBerlin = dtUtc.setZone("Europe/Berlin").toFormat("yyyy-LL-dd HH:mm:ss 'Berlin'");
         const utcStr = dtUtc.toFormat("yyyy-LL-dd HH:mm:ss 'UTC'");
         const countdown = diff > 0 ? fmtCountdown(diff) : "—";
 
-        el.innerHTML = `
+        row.innerHTML = `
       <div class="zone">${idx + 1}. ${escapeHtml(r.zoneLabel)}</div>
       <div class="meta">${fmtOffset(r.offsetMin)} • ${utcStr} • ${localInBerlin}</div>
       <div class="count">${diff > 0 ? "in " + countdown : "passed"}</div>
@@ -177,17 +230,29 @@ function render() {
 
             const wrap = document.createElement("div");
             wrap.style.width = "100%";
-            wrap.appendChild(el);
+            wrap.appendChild(row);
             wrap.appendChild(detail);
-            elList.appendChild(wrap);
+            elList?.appendChild(wrap);
         } else {
-            elList.appendChild(el);
+            elList?.appendChild(row);
         }
     });
 }
 
-elFilter.addEventListener("input", render);
-elDedupe.addEventListener("change", render);
+
+function jumpToNext() {
+    if (!lastNextRowId) return;
+    const target = document.getElementById(lastNextRowId);
+    if (!target) return;
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+// Click
+elJumpNext?.addEventListener("click", jumpToNext);
+elJumpNextInfo?.addEventListener("click", jumpToNext);
+
+elFilter?.addEventListener("input", render);
+elDedupe?.addEventListener("change", render);
 
 render();
 setInterval(render, 1000);
