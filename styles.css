@@ -1,14 +1,230 @@
+/* This was entirely done with ChatGPT because I hate CSS <3 */
+
+:root {
+  --bg: #ffffff;
+  --fg: #111111;
+  --muted: #444444;
+  --muted2: #666666;
+  --border: #eeeeee;
+  --panel: #ffffff;
+
+  --input-bg: #ffffff;
+  --input-fg: #111111;
+
+  --highlight: #fff6cc;
+
+  /* subtle “card” fill for emphasis */
+  --soft: rgba(0, 0, 0, 0.045);
+  --shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e0e0e;
+    --fg: #eeeeee;
+    --muted: #aaaaaa;
+    --muted2: #9a9a9a;
+    --border: #222222;
+    --panel: #0e0e0e;
+
+    --input-bg: #141414;
+    --input-fg: #eeeeee;
+
+    --highlight: #3a3300;
+
+    --soft: rgba(255, 255, 255, 0.06);
+    --shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  }
+}
+
+/* Base */
+* {
+  box-sizing: border-box;
+}
+
 body {
   font-family: system-ui, sans-serif;
   margin: 20px;
+  background: var(--bg);
+  color: var(--fg);
 }
 
+h1 {
+  margin: 0 0 14px 0;
+}
+
+/* Layout: desktop two-column, mobile stacks */
+.layout {
+  display: grid;
+  grid-template-columns: minmax(200px, 350px) 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+.infoPanel {
+  position: sticky;
+  top: 12px;
+
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  /* Key: feels substantial, but not “giant” */
+  min-height: min(220px, calc(100vh - 100px));
+}
+
+/* Optional but nice: visual structure instead of empty space */
+.infoHeader {
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.infoMain {
+  padding-top: 6px;
+}
+
+/* Key: CTA sits at bottom only if there's extra height */
+.infoNextWrap {
+  margin-top: auto;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--soft);
+}
+
+.infoHint {
+  opacity: 0.9;
+}
+
+.infoMeta {
+  opacity: 0.95;
+}
+
+.infoBig {
+  font-size: 22px;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.infoNextWrap:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.02);
+}
+
+.infoNextWrap:focus {
+  outline: 2px solid var(--muted2);
+  outline-offset: 3px;
+}
+
+.infoNextWrap.disabled {
+  opacity: 0.55;
+  cursor: default;
+  pointer-events: none;
+  transform: none;
+  filter: none;
+}
+
+.infoNext {
+  font-size: 24px;
+  font-weight: 900;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.infoWhen {
+  margin-top: 6px;
+}
+
+.listPanel {
+  min-width: 0;
+}
+
+/* Controls */
+.controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+/* Push the button right on desktop */
+.controls button {
+  margin-left: auto;
+}
+
+label.dedupe {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  line-height: 1.25;
+  user-select: none;
+  cursor: pointer;
+  margin: 0;
+}
+
+/* Checkbox: keep it normal + aligned */
+label.dedupe input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  margin: 0;
+  transform: translateY(1px);
+  accent-color: var(--muted2); /* optional, looks nice in dark mode too */
+}
+
+/* Input styling (fixes the “white box in dark mode”) */
+#filter {
+  padding: 8px;
+  width: 340px;
+  max-width: 100%;
+  background: var(--input-bg);
+  color: var(--input-fg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+#filter::placeholder {
+  color: var(--muted2);
+}
+
+button#jumpNext {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  background: var(--input-bg);
+  color: var(--input-fg);
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button#jumpNext:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.small {
+  color: var(--muted2);
+  font-size: 12px;
+  margin: 0;
+}
+
+/* Rows */
 .row {
   display: flex;
   gap: 12px;
   align-items: baseline;
   padding: 8px 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border);
+  scroll-margin-top: 16px;
 }
 
 .zone {
@@ -18,7 +234,7 @@ body {
 
 .meta {
   min-width: 240px;
-  color: #444;
+  color: var(--muted);
 }
 
 .count {
@@ -30,25 +246,103 @@ body {
 }
 
 .next {
-  background: #fff6cc;
+  background: var(--highlight);
 }
 
-.controls {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  margin-bottom: 12px;
-  flex-wrap: wrap;
+.progressBar {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--soft);
+  border: 1px solid var(--border);
+  overflow: hidden;
 }
 
-input {
-  padding: 8px;
-  width: 340px;
-  max-width: 100%;
+.progressFill {
+  height: 100%;
+  width: 0%;
+  background: var(--muted2);
+  border-radius: 999px;
+  transition: width 250ms ease;
 }
 
-.small {
-  color: #666;
-  font-size: 12px;
-  margin: 6px 0;
+/* Stack layout on smaller screens */
+@media (max-width: 990px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  /* keep the info panel visible at the top while you scroll on mobile */
+  .infoPanel {
+    min-height: unset;
+    position: static;
+  }
+  /* On smaller screens, don't force the button to the far right */
+  .controls button {
+    margin-left: 0;
+  }
+
+  /* scrolling to "next" shouldn't hide behind the sticky panel */
+  .row {
+    scroll-margin-top: 160px;
+  }
+}
+
+/* Mobile: general */
+@media (max-width: 700px) {
+  .row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .zone,
+  .meta,
+  .count {
+    min-width: unset;
+    width: 100%;
+  }
+
+  input {
+    width: 100%;
+  }
+}
+
+/* Mobile: iPhone/Android widths (extra polish) */
+@media (max-width: 520px) {
+  body {
+    margin: 12px;
+  }
+
+  h1 {
+    font-size: 20px;
+    line-height: 1.2;
+    margin-bottom: 10px;
+  }
+
+  .controls {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .controls button {
+    width: 100%;
+  }
+
+  .infoBig {
+    font-size: 20px;
+  }
+  .infoNext {
+    font-size: 22px;
+  }
+
+  .zone {
+    font-size: 14px;
+  }
+
+  .meta,
+  .count {
+    font-size: 12px;
+    line-height: 1.25;
+  }
 }
