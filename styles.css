@@ -1,0 +1,54 @@
+body {
+  font-family: system-ui, sans-serif;
+  margin: 20px;
+}
+
+.row {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.zone {
+  min-width: 260px;
+  font-weight: 600;
+}
+
+.meta {
+  min-width: 240px;
+  color: #444;
+}
+
+.count {
+  font-variant-numeric: tabular-nums;
+}
+
+.done {
+  opacity: 0.55;
+}
+
+.next {
+  background: #fff6cc;
+}
+
+.controls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+input {
+  padding: 8px;
+  width: 340px;
+  max-width: 100%;
+}
+
+.small {
+  color: #666;
+  font-size: 12px;
+  margin: 6px 0;
+}

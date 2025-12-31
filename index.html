@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title id="tabTitle">NYE – Timezone Wave</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/luxon@3/build/global/luxon.min.js"></script>
+
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+
+  <body>
+    <h1 id="pageTitle">NYE - Midnight Wave by Timezone</h1>
+
+    <div class="controls">
+      <input id="filter" placeholder="Filter (e.g. Berlin, Pacific, UTC…)" />
+      <label>
+        <input id="dedupe" type="checkbox" checked />
+        group zones that flip at the same moment
+      </label>
+    </div>
+
+    <div class="small" id="progress"></div>
+    <div class="small" id="info"></div>
+
+    <div id="list"></div>
+
+    <script src="./app.js"></script>
+  </body>
+</html>
